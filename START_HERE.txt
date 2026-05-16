@@ -1,0 +1,14 @@
+START HERE
+
+1. Open index.html in your browser.
+2. Confirm you see the styled landing page, not plain text.
+3. Look for: "Ready. JavaScript loaded and local storage is available."
+4. Click "Use the tracker" or scroll to the Add Lead form.
+5. Add a test lead and click Save Lead.
+6. Confirm Total Leads changes from 0 to 1.
+7. Click Export CSV privately.
+8. Save the exported CSV outside this GitHub project folder.
+
+Privacy rule:
+GitHub = public app
+Your computer/private drive = real data

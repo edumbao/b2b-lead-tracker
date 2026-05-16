@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ed Umbao Lead Tracker | Privacy-First B2B CSV App</title>
+  <meta name="description" content="A privacy-first B2B lead tracker that imports, edits, exports, and clears CSV data locally in your browser.">
+  <style>
+    :root {
+      --ink: #11110f;
+      --ink-2: #26231e;
+      --muted: #6f675c;
+      --paper: #f7efdf;
+      --paper-2: #fffaf0;
+      --cream: #fbf3e2;
+      --line: #dccfb6;
+      --line-2: #cdbd9e;
+      --accent: #d9ff43;
+      --accent-2: #edff99;
+      --danger: #a33424;
+      --danger-bg: #ffe8de;
+      --ok: #476c0a;
+      --ok-bg: #f2ffd2;
+      --shadow: 0 26px 80px rgba(17, 17, 15, 0.13);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --pill: 999px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      line-height: 1.55;
+      background:
+        radial-gradient(circle at 9% 4%, rgba(217, 255, 67, 0.32), transparent 24rem),
+        radial-gradient(circle at 87% 3%, rgba(255, 250, 240, 0.94), transparent 22rem),
+        linear-gradient(180deg, var(--cream), var(--paper) 47%, #eee0c7 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(17, 17, 15, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 17, 15, 0.045) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.95), rgba(0,0,0,.35));
+    }
+
+    a { color: inherit; }
+    h1, h2, h3, p { margin-top: 0; }
+
+    .site-header {
+      position: sticky;
+      top: 14px;
+      z-index: 50;
+      width: min(1180px, calc(100% - 28px));
+      margin: 14px auto 0;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--pill);
+      background: rgba(17, 17, 15, 0.94);
+      color: var(--paper-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: 0 18px 50px rgba(17, 17, 15, 0.24);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 13px;
+      text-decoration: none;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--accent);
+      font-weight: 1000;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 750;
+      color: rgba(255,250,240,0.7);
+      font-size: 14px;
+      padding: 9px 13px;
+      border-radius: var(--pill);
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      background: rgba(255,250,240,0.1);
+      color: var(--paper-2);
+      outline: none;
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 58px 0 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.16fr) minmax(330px, 0.84fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .hero-card,
+    .system-card,
+    .notice,
+    .metric,
+    .tool-card,
+    .section-card,
+    .process-card,
+    .footer-card {
+      border: 1px solid var(--line);
+      background: rgba(255,250,240,0.76);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: clamp(28px, 5vw, 56px);
+      min-height: 620px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -110px;
+      bottom: -110px;
+      width: 290px;
+      height: 290px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: .38;
+      filter: blur(6px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 18px;
+      padding: 7px 11px;
+      border-radius: var(--pill);
+      border: 1px solid var(--line);
+      color: var(--ink-2);
+      background: rgba(255,250,240,0.72);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 900;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(217,255,67,.24);
+    }
+
+    h1 {
+      max-width: 850px;
+      margin-bottom: 24px;
+      font-size: clamp(46px, 8.6vw, 100px);
+      line-height: .92;
+      letter-spacing: -.082em;
+    }
+
+    .hero-subtitle {
+      max-width: 760px;
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-size: clamp(17px, 2.2vw, 22px);
+    }
+
+    .hero-actions,
+    .section-actions,
+    .form-actions,
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .button,
+    button,
+    .file-button {
+      border: 0;
+      cursor: pointer;
+      appearance: none;
+      font: inherit;
+      text-decoration: none;
+      font-weight: 900;
+      border-radius: var(--pill);
+      min-height: 44px;
+      padding: 11px 17px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+      user-select: none;
+    }
+
+    .button:hover,
+    button:hover,
+    .file-button:hover { transform: translateY(-1px); }
+
+    .primary {
+      background: var(--ink);
+      color: var(--paper-2);
+      box-shadow: 0 12px 30px rgba(17,17,15,.22);
+    }
+
+    .primary.accent {
+      background: var(--accent);
+      color: var(--ink);
+      box-shadow: 0 12px 30px rgba(108,136,0,.18);
+    }
+
+    .secondary {
+      color: var(--ink);
+      background: var(--paper-2);
+      border: 1px solid var(--line-2);
+    }
+
+    .danger-light {
+      color: #ffe5dc;
+      background: rgba(163,52,36,.22);
+      border: 1px solid rgba(255,232,222,.2);
+    }
+
+    .trust-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 34px;
+    }
+
+    .trust-strip span {
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--pill);
+      background: rgba(255,250,240,0.68);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .system-card {
+      padding: 26px;
+      background: var(--ink);
+      color: var(--paper-2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 620px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .system-card::before {
+      content: "";
+      position: absolute;
+      inset: 18px 18px auto auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: .88;
+    }
+
+    .panel-kicker {
+      position: relative;
+      z-index: 1;
+      color: rgba(255,250,240,.66);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .13em;
+      font-size: 12px;
+    }
+
+    .system-card h2 {
+      position: relative;
+      z-index: 1;
+      margin: 80px 0 22px;
+      font-size: clamp(32px, 4vw, 54px);
+      line-height: .96;
+      letter-spacing: -.055em;
+    }
+
+    .system-list {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 13px;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .system-list li {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 22px;
+      background: rgba(255,250,240,.08);
+      border: 1px solid rgba(255,250,240,.13);
+    }
+
+    .system-list span {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--accent);
+      font-weight: 1000;
+    }
+
+    .system-list strong { display: block; margin-bottom: 4px; }
+    .system-list p { margin: 0; color: rgba(255,250,240,.69); font-size: 14px; }
+
+    .notice {
+      margin: 4px 0 24px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .notice p { margin: 2px 0 0; color: var(--muted); }
+    .status-pill {
+      border-radius: var(--pill);
+      padding: 9px 12px;
+      background: var(--ok-bg);
+      color: var(--ok);
+      font-weight: 900;
+      white-space: nowrap;
+      border: 1px solid rgba(71,108,10,.18);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .metric {
+      padding: 18px;
+      border-radius: 24px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-weight: 850;
+      font-size: 13px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 7px;
+      font-size: clamp(27px, 4vw, 42px);
+      line-height: 1;
+      letter-spacing: -.055em;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .tool-card {
+      padding: 22px;
+      border-radius: 26px;
+    }
+
+    .card-number {
+      display: inline-grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 18px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--paper-2);
+      font-weight: 950;
+    }
+
+    .tool-card h3 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      letter-spacing: -.035em;
+    }
+
+    .tool-card p { margin: 0; color: var(--muted); }
+
+    .section-card {
+      padding: clamp(20px, 4vw, 34px);
+      margin-bottom: 24px;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 22px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 8px;
+      font-size: clamp(30px, 5vw, 58px);
+      line-height: .96;
+      letter-spacing: -.06em;
+    }
+
+    .section-heading p:not(.eyebrow) {
+      max-width: 760px;
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 13px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line-2);
+      border-radius: 16px;
+      background: rgba(255,250,240,.88);
+      color: var(--ink);
+      font: inherit;
+      padding: 12px 13px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--ink);
+      box-shadow: 0 0 0 4px rgba(217,255,67,.32);
+    }
+
+    textarea { resize: vertical; min-height: 90px; }
+    .wide { grid-column: span 2; }
+    .full { grid-column: 1 / -1; }
+    .form-actions { margin-top: 16px; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr) auto auto;
+      gap: 13px;
+      align-items: end;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1320px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--ink);
+      color: var(--paper-2);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      white-space: nowrap;
+    }
+
+    td { max-width: 240px; color: var(--ink-2); }
+    tr:hover td { background: rgba(217,255,67,.14); }
+    .empty-row td { text-align: center; color: var(--muted); padding: 28px; }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      min-height: 32px;
+      padding: 7px 10px;
+      font-size: 12px;
+      border-radius: var(--pill);
+      background: var(--paper);
+      border: 1px solid var(--line-2);
+      color: var(--ink);
+    }
+
+    .mini-btn.delete { color: var(--danger); background: var(--danger-bg); border-color: rgba(163,52,36,.18); }
+
+    .process-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .process-card {
+      padding: 26px;
+      border-radius: 28px;
+    }
+
+    .process-card h2 {
+      font-size: clamp(30px, 4vw, 48px);
+      letter-spacing: -.055em;
+      line-height: .98;
+      margin-bottom: 12px;
+    }
+
+    .process-card ol,
+    .process-card ul {
+      margin: 12px 0 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+
+    .process-card li { margin: 8px 0; }
+    .footer-card {
+      margin: 24px 0 38px;
+      padding: 28px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+    .footer-card p { margin: 0; color: var(--muted); }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      .site-header { align-items: stretch; border-radius: 28px; flex-wrap: wrap; }
+      .nav-links { order: 3; width: 100%; overflow-x: auto; justify-content: flex-start; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-card, .system-card { min-height: auto; }
+      .metrics { grid-template-columns: repeat(3, 1fr); }
+      .tools-grid { grid-template-columns: 1fr; }
+      .form-grid, .filters { grid-template-columns: repeat(2, 1fr); }
+      .process-grid { grid-template-columns: 1fr; }
+      .section-heading { flex-direction: column; }
+    }
+
+    @media (max-width: 620px) {
+      .container, .site-header { width: min(100% - 18px, 1180px); }
+      .hero { padding-top: 28px; }
+      h1 { font-size: clamp(42px, 15vw, 72px); }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .form-grid, .filters { grid-template-columns: 1fr; }
+      .wide { grid-column: auto; }
+      .footer-card { align-items: flex-start; flex-direction: column; }
+      .button, button, .file-button { width: 100%; }
+      .nav-links a { white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Home"><span class="brand-mark">↗</span><span>Ed Umbao</span></a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="#tools">Tools</a>
+      <a href="#tracker">Tracker</a>
+      <a href="#lead-form">Add Lead</a>
+      <a href="#leads">Pipeline</a>
+      <a href="#privacy">Privacy</a>
+    </nav>
+    <button id="clearDataBtn" type="button" class="danger-light">Clear local data</button>
+  </header>
+
+  <main id="top" class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div>
+          <p class="eyebrow">B2B Lead Generation System</p>
+          <h1>Track warm B2B leads without exposing your private CSV.</h1>
+          <p class="hero-subtitle">A privacy-first tracker for organic prospecting across LinkedIn, X, Facebook, Reddit, and Quora. Import locally, qualify manually, export privately, and keep GitHub limited to the public app.</p>
+          <div class="hero-actions">
+            <button id="addLeadBtn" type="button" class="button primary accent">Use the tracker</button>
+            <label class="button primary" for="csvInput">Import private CSV</label>
+            <input id="csvInput" class="visually-hidden" type="file" accept=".csv,text/csv">
+            <button id="exportCsvBtn" type="button" class="button secondary">Export CSV privately</button>
+          </div>
+        </div>
+        <div class="trust-strip" aria-label="Privacy safeguards">
+          <span>No login</span>
+          <span>No server</span>
+          <span>No external scripts</span>
+          <span>Local browser storage</span>
+          <span>Fake sample data only</span>
+        </div>
+      </div>
+
+      <aside class="system-card" aria-label="Lead system">
+        <div>
+          <p class="panel-kicker">Growth system</p>
+          <h2>Find signals. Qualify fit. Start better conversations.</h2>
+        </div>
+        <ol class="system-list">
+          <li><span>1</span><div><strong>Find buying intent</strong><p>Capture pain signals from posts, comments, group questions, subreddit threads, and Quora answers.</p></div></li>
+          <li><span>2</span><div><strong>Score the lead</strong><p>Use fit score, role, company context, and trigger source before sending any outreach.</p></div></li>
+          <li><span>3</span><div><strong>Track the next action</strong><p>Record warm actions, DMs, replies, follow-ups, and booked calls in one local pipeline.</p></div></li>
+        </ol>
+      </aside>
+    </section>
+
+    <section class="notice" aria-live="polite">
+      <div>
+        <strong>Privacy note</strong>
+        <p>This public app is the tool only. Your real lead data should stay on your computer or private drive. Imported rows are stored only in this browser when local storage is available.</p>
+      </div>
+      <div class="status-pill"><span id="appStatus">Loading JavaScript...</span></div>
+      <noscript>This tracker needs JavaScript enabled to add, import, export, and clear leads.</noscript>
+    </section>
+
+    <section id="tracker" class="metrics" aria-label="Lead dashboard">
+      <article class="metric"><span>Total leads</span><strong id="totalLeads">0</strong></article>
+      <article class="metric"><span>DMs sent</span><strong id="dmsSent">0</strong></article>
+      <article class="metric"><span>Replies</span><strong id="replies">0</strong></article>
+      <article class="metric"><span>Calls booked</span><strong id="callsBooked">0</strong></article>
+      <article class="metric"><span>Reply rate</span><strong id="replyRate">0%</strong></article>
+      <article class="metric"><span>Booking rate</span><strong id="bookingRate">0%</strong></article>
+    </section>
+
+    <section id="tools" class="tools-grid" aria-label="Workflow cards">
+      <article class="tool-card"><span class="card-number">01</span><h3>Import privately</h3><p>Select a CSV from your computer. The file is read in your browser and is not uploaded to GitHub.</p></article>
+      <article class="tool-card"><span class="card-number">02</span><h3>Work the pipeline</h3><p>Add decision-makers, record pain signals, score fit, and plan the next warm action.</p></article>
+      <article class="tool-card"><span class="card-number">03</span><h3>Export and clear</h3><p>Download the updated CSV to a private folder, then clear local browser data when finished.</p></article>
+    </section>
+
+    <section id="lead-form" class="section-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Manual lead entry</p>
+          <h2 id="formTitle">Add a lead</h2>
+          <p>Use this form when you find a decision-maker from a post, group, subreddit, answer, comment thread, or recommendation request.</p>
+        </div>
+        <div class="section-actions">
+          <button id="loadSampleBtn" type="button" class="button secondary">Load fake sample</button>
+          <button id="resetFormBtn" type="button" class="button secondary">Reset form</button>
+        </div>
+      </div>
+
+      <form id="leadForm" autocomplete="off">
+        <input id="editingIndex" type="hidden" value="">
+        <div class="form-grid">
+          <label>Date<input name="Date" type="date"></label>
+          <label>Platform
+            <select name="Platform">
+              <option value="">Select</option><option>LinkedIn</option><option>Twitter/X</option><option>Facebook</option><option>Reddit</option><option>Quora</option><option>Other</option>
+            </select>
+          </label>
+          <label>Lead name<input id="leadNameInput" name="Lead name" type="text" placeholder="Jane Smith"></label>
+          <label>Company<input name="Company" type="text" placeholder="Company name"></label>
+          <label>Role<input name="Role" type="text" placeholder="Founder, VP Sales, Owner"></label>
+          <label>Profile URL<input name="Profile URL" type="url" placeholder="https://..."></label>
+          <label>Fit score 1–5
+            <select name="Fit score 1–5"><option value="">Select</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+          </label>
+          <label>Warm action taken
+            <select name="Warm action taken">
+              <option value="">Select</option><option>Viewed profile</option><option>Commented</option><option>Replied publicly</option><option>Sent resource</option><option>Connection request</option><option>DM sent</option><option>Follow-up sent</option><option>Other</option>
+            </select>
+          </label>
+          <label>DM sent?<select name="DM sent?"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+          <label>Reply?<select name="Reply?"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+          <label>Next step
+            <select name="Next step"><option value="">Select</option><option>Research</option><option>Warm up</option><option>Send DM</option><option>Follow up</option><option>Send resource</option><option>Book call</option><option>Nurture</option><option>Closed</option><option>Not fit</option></select>
+          </label>
+          <label>Call booked?<select name="Call booked?"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+          <label class="wide">Pain signal<textarea name="Pain signal" placeholder="What problem, request, complaint, or buying signal did they show?"></textarea></label>
+          <label class="wide">Trigger post/comment<textarea name="Trigger post/comment" placeholder="What post, comment, group thread, or search query led you to this person?"></textarea></label>
+          <label class="full">Notes<textarea name="Notes" placeholder="Follow-up context, objections, resource sent, call notes, or next message idea."></textarea></label>
+        </div>
+        <div class="form-actions">
+          <button id="saveLeadBtn" type="submit" class="button primary accent">Save lead</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="section-card filters" aria-label="Lead filters">
+      <label>Platform
+        <select id="platformFilter"><option value="">All platforms</option><option>LinkedIn</option><option>Twitter/X</option><option>Facebook</option><option>Reddit</option><option>Quora</option><option>Other</option></select>
+      </label>
+      <label>Minimum fit score
+        <select id="fitFilter"><option value="">Any score</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+      </label>
+      <label>Reply status
+        <select id="replyFilter"><option value="">Any reply status</option><option>Yes</option><option>No</option></select>
+      </label>
+      <label>Search<input id="searchInput" type="search" placeholder="Name, company, pain signal..."></label>
+      <button id="resetFiltersBtn" type="button" class="button secondary">Reset filters</button>
+      <button id="exportFilteredBtn" type="button" class="button secondary">Export filtered</button>
+    </section>
+
+    <section id="leads" class="section-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Pipeline</p>
+          <h2>Lead list</h2>
+          <p>Review your organic lead pipeline. Edit rows as you move conversations from public engagement into DMs and discovery calls.</p>
+        </div>
+        <div class="table-actions">
+          <button id="copyHeadersBtn" type="button" class="button secondary">Copy CSV headers</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="B2B lead tracker table">
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="privacy" class="process-grid">
+      <article class="process-card">
+        <p class="eyebrow">Private workflow</p>
+        <h2>Use GitHub for the tool, not the data.</h2>
+        <ol>
+          <li>Upload this public app file to GitHub Pages.</li>
+          <li>Keep your real CSV in a private local or cloud folder.</li>
+          <li>Import the private CSV only inside the running web app.</li>
+          <li>Export updates and save the file outside your GitHub folder.</li>
+          <li>Clear local data after each session if the device is shared.</li>
+        </ol>
+      </article>
+      <article class="process-card">
+        <p class="eyebrow">Safety checklist</p>
+        <h2>Before publishing, check the repo.</h2>
+        <ul>
+          <li>Only upload <strong>index.html</strong>, README, privacy docs, and fake sample CSV.</li>
+          <li>Never upload real lead CSVs, exports, or client spreadsheets.</li>
+          <li>Use <strong>.gitignore</strong> to block CSV and spreadsheet files by default.</li>
+          <li>Think: GitHub is the public interface. Your computer is the private database.</li>
+        </ul>
+      </article>
+    </section>
+
+    <footer class="footer-card">
+      <div>
+        <strong>Ed Umbao Lead Tracker</strong>
+        <p>Privacy-first B2B lead tracking for organic prospecting systems.</p>
+      </div>
+      <button id="footerExportBtn" type="button" class="button primary">Export CSV privately</button>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const HEADERS = [
+        'Date', 'Platform', 'Lead name', 'Company', 'Role', 'Profile URL', 'Pain signal',
+        'Trigger post/comment', 'Fit score 1–5', 'Warm action taken', 'DM sent?', 'Reply?',
+        'Next step', 'Call booked?', 'Notes'
+      ];
+
+      const STORAGE_KEY = 'edUmbaoB2BLeadTrackerData';
+
+      const SAMPLE_ROWS = [
+        {
+          'Date': '2026-05-16',
+          'Platform': 'LinkedIn',
+          'Lead name': 'Jane Demo',
+          'Company': 'DemoCo',
+          'Role': 'Founder',
+          'Profile URL': 'https://example.com',
+          'Pain signal': 'Needs more qualified sales calls without paid ads.',
+          'Trigger post/comment': 'Commented on a post about outbound not working.',
+          'Fit score 1–5': '4',
+          'Warm action taken': 'Commented',
+          'DM sent?': 'No',
+          'Reply?': 'No',
+          'Next step': 'Send DM',
+          'Call booked?': 'No',
+          'Notes': 'Sample row only. Replace with private data.'
+        },
+        {
+          'Date': '2026-05-16',
+          'Platform': 'Reddit',
+          'Lead name': 'Alex Sample',
+          'Company': 'Sample Agency',
+          'Role': 'Owner',
+          'Profile URL': 'https://example.com',
+          'Pain signal': 'Struggling with low-quality lead sources.',
+          'Trigger post/comment': 'Posted in an agency subreddit asking about lead quality.',
+          'Fit score 1–5': '3',
+          'Warm action taken': 'Replied publicly',
+          'DM sent?': 'No',
+          'Reply?': 'No',
+          'Next step': 'Monitor',
+          'Call booked?': 'No',
+          'Notes': 'Sample row only. Replace with private data.'
+        }
+      ];
+
+      let leads = [];
+
+      const $ = (id) => document.getElementById(id);
+
+      const elements = {
+        appStatus: $('appStatus'),
+        csvInput: $('csvInput'),
+        addLeadBtn: $('addLeadBtn'),
+        exportCsvBtn: $('exportCsvBtn'),
+        exportFilteredBtn: $('exportFilteredBtn'),
+        footerExportBtn: $('footerExportBtn'),
+        clearDataBtn: $('clearDataBtn'),
+        loadSampleBtn: $('loadSampleBtn'),
+        resetFormBtn: $('resetFormBtn'),
+        resetFiltersBtn: $('resetFiltersBtn'),
+        copyHeadersBtn: $('copyHeadersBtn'),
+        leadForm: $('leadForm'),
+        formTitle: $('formTitle'),
+        editingIndex: $('editingIndex'),
+        leadNameInput: $('leadNameInput'),
+        tableHead: $('tableHead'),
+        tableBody: $('tableBody'),
+        platformFilter: $('platformFilter'),
+        fitFilter: $('fitFilter'),
+        replyFilter: $('replyFilter'),
+        searchInput: $('searchInput'),
+        totalLeads: $('totalLeads'),
+        dmsSent: $('dmsSent'),
+        replies: $('replies'),
+        callsBooked: $('callsBooked'),
+        replyRate: $('replyRate'),
+        bookingRate: $('bookingRate')
+      };
+
+      function canUseStorage() {
+        try {
+          const testKey = STORAGE_KEY + '_test';
+          localStorage.setItem(testKey, '1');
+          localStorage.removeItem(testKey);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      const storageAvailable = canUseStorage();
+
+      function setStatus(message, type) {
+        elements.appStatus.textContent = message;
+        const pill = elements.appStatus.parentElement;
+        if (type === 'warning') {
+          pill.style.background = 'var(--danger-bg)';
+          pill.style.color = 'var(--danger)';
+        } else {
+          pill.style.background = 'var(--ok-bg)';
+          pill.style.color = 'var(--ok)';
+        }
+      }
+
+      function blankLead() {
+        const row = {};
+        HEADERS.forEach(header => row[header] = '');
+        return row;
+      }
+
+      function normalizeRow(row) {
+        const normalized = blankLead();
+        HEADERS.forEach(header => {
+          normalized[header] = row && row[header] != null ? String(row[header]).trim() : '';
+        });
+        return normalized;
+      }
+
+      function saveLeads() {
+        if (!storageAvailable) return;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+      }
+
+      function loadLeads() {
+        if (!storageAvailable) return [];
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (!stored) return [];
+          const parsed = JSON.parse(stored);
+          return Array.isArray(parsed) ? parsed.map(normalizeRow) : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function isYes(value) {
+        return String(value || '').trim().toLowerCase() === 'yes';
+      }
+
+      function currentFilters() {
+        return {
+          platform: elements.platformFilter.value,
+          fit: elements.fitFilter.value,
+          reply: elements.replyFilter.value,
+          search: elements.searchInput.value.trim().toLowerCase()
+        };
+      }
+
+      function getFilteredLeads() {
+        const filters = currentFilters();
+        return leads.filter(row => {
+          const platformOk = !filters.platform || row['Platform'] === filters.platform;
+          const fitOk = !filters.fit || (parseInt(row['Fit score 1–5'], 10) || 0) >= parseInt(filters.fit, 10);
+          const replyOk = !filters.reply || row['Reply?'] === filters.reply;
+          const searchOk = !filters.search || HEADERS.some(header => String(row[header] || '').toLowerCase().includes(filters.search));
+          return platformOk && fitOk && replyOk && searchOk;
+        });
+      }
+
+      function updateMetrics() {
+        const total = leads.length;
+        const dms = leads.filter(row => isYes(row['DM sent?'])).length;
+        const replies = leads.filter(row => isYes(row['Reply?'])).length;
+        const calls = leads.filter(row => isYes(row['Call booked?'])).length;
+        elements.totalLeads.textContent = total;
+        elements.dmsSent.textContent = dms;
+        elements.replies.textContent = replies;
+        elements.callsBooked.textContent = calls;
+        elements.replyRate.textContent = dms ? Math.round((replies / dms) * 100) + '%' : '0%';
+        elements.bookingRate.textContent = total ? Math.round((calls / total) * 100) + '%' : '0%';
+      }
+
+      function renderTable() {
+        elements.tableHead.innerHTML = HEADERS.map(header => `<th>${escapeHtml(header)}</th>`).join('') + '<th>Actions</th>';
+        const filtered = getFilteredLeads();
+        if (!filtered.length) {
+          elements.tableBody.innerHTML = `<tr class="empty-row"><td colspan="${HEADERS.length + 1}">No leads to show. Add a lead, load fake sample data, or import a private CSV.</td></tr>`;
+          return;
+        }
+        elements.tableBody.innerHTML = filtered.map(row => {
+          const originalIndex = leads.indexOf(row);
+          const cells = HEADERS.map(header => {
+            const value = row[header] || '';
+            if (header === 'Profile URL' && value) {
+              return `<td><a href="${escapeHtml(value)}" target="_blank" rel="noopener noreferrer">Open profile</a></td>`;
+            }
+            return `<td>${escapeHtml(value)}</td>`;
+          }).join('');
+          return `<tr>${cells}<td><div class="row-actions"><button type="button" class="mini-btn" data-edit="${originalIndex}">Edit</button><button type="button" class="mini-btn delete" data-delete="${originalIndex}">Delete</button></div></td></tr>`;
+        }).join('');
+      }
+
+      function render() {
+        updateMetrics();
+        renderTable();
+      }
+
+      function resetForm() {
+        elements.leadForm.reset();
+        elements.editingIndex.value = '';
+        elements.formTitle.textContent = 'Add a lead';
+      }
+
+      function scrollToForm() {
+        document.getElementById('lead-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => elements.leadNameInput.focus(), 350);
+      }
+
+      function formToRow() {
+        const formData = new FormData(elements.leadForm);
+        const row = blankLead();
+        HEADERS.forEach(header => row[header] = String(formData.get(header) || '').trim());
+        return row;
+      }
+
+      function fillForm(row, index) {
+        HEADERS.forEach(header => {
+          const field = elements.leadForm.elements[header];
+          if (field) field.value = row[header] || '';
+        });
+        elements.editingIndex.value = String(index);
+        elements.formTitle.textContent = 'Edit lead';
+        scrollToForm();
+      }
+
+      function parseCSV(text) {
+        const rows = [];
+        let row = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          const nextChar = text[i + 1];
+          if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            row.push(current);
+            current = '';
+          } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            if (char === '\r' && nextChar === '\n') i++;
+            row.push(current);
+            if (row.some(cell => String(cell).trim() !== '')) rows.push(row);
+            row = [];
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        row.push(current);
+        if (row.some(cell => String(cell).trim() !== '')) rows.push(row);
+        if (!rows.length) return [];
+        const headers = rows[0].map(header => String(header || '').replace(/^\uFEFF/, '').trim());
+        return rows.slice(1).map(cells => {
+          const obj = {};
+          headers.forEach((header, index) => obj[header] = cells[index] || '');
+          return normalizeRow(obj);
+        });
+      }
+
+      function csvEscape(value) {
+        const str = String(value == null ? '' : value);
+        if (/[",\n\r]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+        return str;
+      }
+
+      function toCSV(rows) {
+        return [HEADERS.join(',')].concat(rows.map(row => HEADERS.map(header => csvEscape(row[header])).join(','))).join('\n');
+      }
+
+      function downloadCSV(rows, filename) {
+        const csv = toCSV(rows);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function bindEvents() {
+        elements.addLeadBtn.addEventListener('click', scrollToForm);
+        elements.resetFormBtn.addEventListener('click', resetForm);
+
+        elements.leadForm.addEventListener('submit', event => {
+          event.preventDefault();
+          const row = formToRow();
+          const index = elements.editingIndex.value;
+          if (index !== '') {
+            leads[Number(index)] = row;
+            setStatus('Lead updated. Export CSV to save a private copy.', 'ok');
+          } else {
+            leads.push(row);
+            setStatus('Lead saved locally. Export CSV to save a private copy.', 'ok');
+          }
+          saveLeads();
+          resetForm();
+          render();
+        });
+
+        elements.tableBody.addEventListener('click', event => {
+          const editButton = event.target.closest('[data-edit]');
+          const deleteButton = event.target.closest('[data-delete]');
+          if (editButton) {
+            const index = Number(editButton.getAttribute('data-edit'));
+            fillForm(leads[index], index);
+          }
+          if (deleteButton) {
+            const index = Number(deleteButton.getAttribute('data-delete'));
+            if (confirm('Delete this lead from local browser data?')) {
+              leads.splice(index, 1);
+              saveLeads();
+              render();
+              setStatus('Lead deleted from local browser data.', 'ok');
+            }
+          }
+        });
+
+        elements.csvInput.addEventListener('change', event => {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = e => {
+            try {
+              const imported = parseCSV(String(e.target.result || ''));
+              if (!imported.length) {
+                alert('No rows found. Check that your CSV has the correct header row.');
+                return;
+              }
+              const replace = leads.length ? confirm('Replace existing local leads with the imported CSV? Click Cancel to append instead.') : true;
+              leads = replace ? imported : leads.concat(imported);
+              saveLeads();
+              render();
+              setStatus(`Imported ${imported.length} row(s) locally.`, 'ok');
+            } catch (error) {
+              alert('Could not import CSV. Please check the file format.');
+              setStatus('CSV import failed.', 'warning');
+            } finally {
+              elements.csvInput.value = '';
+            }
+          };
+          reader.readAsText(file);
+        });
+
+        elements.exportCsvBtn.addEventListener('click', () => downloadCSV(leads, 'private_b2b_leads_export.csv'));
+        elements.footerExportBtn.addEventListener('click', () => downloadCSV(leads, 'private_b2b_leads_export.csv'));
+        elements.exportFilteredBtn.addEventListener('click', () => downloadCSV(getFilteredLeads(), 'private_b2b_leads_filtered_export.csv'));
+
+        elements.loadSampleBtn.addEventListener('click', () => {
+          const replace = leads.length ? confirm('Replace current local leads with fake sample data?') : true;
+          leads = replace ? SAMPLE_ROWS.map(normalizeRow) : leads.concat(SAMPLE_ROWS.map(normalizeRow));
+          saveLeads();
+          render();
+          setStatus('Fake sample data loaded. Do not use sample rows as real leads.', 'ok');
+        });
+
+        elements.clearDataBtn.addEventListener('click', () => {
+          if (!confirm('This deletes all locally stored lead data from this browser. Export first if you need a copy. Continue?')) return;
+          leads = [];
+          if (storageAvailable) localStorage.removeItem(STORAGE_KEY);
+          resetForm();
+          render();
+          setStatus('Local browser data cleared.', 'ok');
+        });
+
+        elements.resetFiltersBtn.addEventListener('click', () => {
+          elements.platformFilter.value = '';
+          elements.fitFilter.value = '';
+          elements.replyFilter.value = '';
+          elements.searchInput.value = '';
+          render();
+        });
+
+        [elements.platformFilter, elements.fitFilter, elements.replyFilter].forEach(el => el.addEventListener('change', render));
+        elements.searchInput.addEventListener('input', render);
+
+        elements.copyHeadersBtn.addEventListener('click', async () => {
+          const text = HEADERS.join(',');
+          try {
+            await navigator.clipboard.writeText(text);
+            setStatus('CSV headers copied.', 'ok');
+          } catch (error) {
+            prompt('Copy these CSV headers:', text);
+          }
+        });
+      }
+
+      function init() {
+        leads = loadLeads();
+        bindEvents();
+        render();
+        if (storageAvailable) {
+          setStatus('Ready. JavaScript loaded and local storage is available.', 'ok');
+        } else {
+          setStatus('Ready, but local storage is blocked. Export CSV before closing.', 'warning');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
